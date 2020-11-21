@@ -1,4 +1,6 @@
 import createServer from './server';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const PORT = process.env.PORT || '3010';
 const server = createServer();
