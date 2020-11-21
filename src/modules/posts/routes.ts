@@ -1,58 +1,48 @@
+import { FastifyContext, FastifyInstance, FastifyLoggerInstance } from "fastify";
+import { Server, IncomingMessage, ServerResponse } from "http";
+import { verifyToken } from "../../plugins/auth";
 import { Subreddut } from "../subreddut/entity";
 import { User } from "../users/entity";
 import { Post } from "./entity";
+import { listSchema } from "./schema";
 
-export default function postsHandler(server, options, next) {
+export default function postsHandler(server: FastifyInstance<Server> & PromiseLike<FastifyInstance<Server>>, options, next) {
 	server.get(
 		'/',
-		async (req, res) => {
-			const users = await server.db.posts.find();
-			res.send(users);
+		async (req: any, res) => {
+			const users = await Post.list(req.body.title, req.body.user_id, req.body.subreddut_id);
+			res.status(200).send(users);
 		}
 	);
 
-	/*server.get(
+	server.get(
 		'/:id',
-		async (req, res) => {
+		async (req:any, res) => {
 			req.log.info('list users from db');
-			const user = await User.get(req.params.id)
-			res.send(user);
+			const user = await Post.get(req.params.id)
+			res.status(200).send(user);
 		}
-	);*/
+	);
 
 	server.post('/', async (req, res) => {
-		req.log.info('Add user to db');
-
-		const user = await User.get(req.body.user_id)
-		if(!user)
-			throw new Error(`User with id ${req.body.user_id} does not exist`)
-
-		const sub = await Subreddut.get(req.body.subreddut_id)
-		if(!sub)
-			throw new Error(`Subreddut with id ${req.body.subreddut_id} does not exist`)
-
-		const post = Post.create(req.body.title, req.body.content, user, sub);
-		res.status(201).send(post);
+		if(!req.headers.authorization)
+			throw {name: 'invalid_token', message: `Pass a valid token in header 'Authorization'.`} as Error
+		verifyToken(req.headers.authorization)
 		
-	});
-
-	/*server.put('/:id', async (req, res) => {
 		req.log.info('Add user to db');
-		const user = await User.get(req.params.id)
-		if(user){
-			const sameUsername = User.findByUsername(user.username)
-			if(!sameUsername)
-				res.status(202).send(user.update(req.body))
-			else
-				throw {name: 'already_exists', message: `User with username ${user.username} already exists.`} as Error
-		} else {
-			const err: Error = {
-				name: 'does_not_exist',
-				message: `User with id ${req.params.id} does not exist`,
-			} 
-			throw err
-		}
-	});*/
+		const bodyRequest: any = req.body
+
+		const user = await User.get(bodyRequest.user_id)
+		if(!user)
+			throw new Error(`User with id ${bodyRequest.user_id} does not exist`)
+
+		const sub = await Subreddut.get(bodyRequest.subreddut_id)
+		if(!sub)
+			throw new Error(`Subreddut with id ${bodyRequest.subreddut_id} does not exist`)
+
+		const post = await Post.create(bodyRequest.title, bodyRequest.content, user, sub);
+		res.status(201).send(post);
+	});
 
 	next();
 };

@@ -10,5 +10,4 @@
     "logging": true,
     "entities": ["src/entity/*.*"],
     "useUnifiedTopology": true
-    
 }

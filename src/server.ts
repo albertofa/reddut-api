@@ -6,6 +6,7 @@ import productsHandler from './modules/products/routes';
 import usersHandler from './modules/users/routes';
 import postsHandler from './modules/posts/routes';
 import subreddutsHandler from './modules/subreddut/routes';
+import authHandler from './modules/auth/routes';
 
 function createServer() {
 	const server = fastify();
@@ -39,6 +40,7 @@ function createServer() {
 	server.register(usersHandler, { prefix: '/user' });
 	server.register(postsHandler, { prefix: '/post' });
 	server.register(subreddutsHandler, { prefix: '/subreddut' });
+	server.register(authHandler, { prefix: '/auth' });
 
 	server.setErrorHandler((error, req, res) => {
 		req.log.error(error.toString());

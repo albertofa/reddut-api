@@ -5,10 +5,14 @@ import { Product } from '../modules/products/entity';
 import { User } from '../modules/users/entity';
 import { Post } from '../modules/posts/entity';
 import { Subreddut } from '../modules/subreddut/entity';
+import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 
 export default fp(async server => {
 	try {
-		const connectionOptions = await getConnectionOptions();
+		let connectionOptions = await getConnectionOptions();
+		/*const conn: MysqlConnectionOptions = {
+
+		}*/
 		Object.assign(connectionOptions, {
 			options: { encrypt: true },
 			entities: [Product, User, Post, Subreddut]

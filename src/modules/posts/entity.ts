@@ -4,7 +4,8 @@ import {
 	Column,
   	ManyToOne,
   	JoinColumn,
-		getConnection
+		getConnection,
+		Like
 } from 'typeorm';
 import { Subreddut } from '../subreddut/entity';
 import { User } from '../users/entity'
@@ -34,7 +35,6 @@ export class Post {
 		this.content = content
 		this.user = user
 		this.subreddut = subreddut
-
 	}
 
 	public static async create(title: string, content: string, user: User, subreddut: Subreddut): Promise<Post>{
@@ -42,12 +42,27 @@ export class Post {
 		
 		const post = new Post(title, content, user, subreddut)
 		
-		return connection.getRepository(Post).save(post)
+		return await connection.getRepository(Post).save(post)
 	}
 
 	public static async get(id: string): Promise<Post>{
 		const connection = await getConnection();
 	
 		return await connection.getRepository(Post).findOne(id)
+	}
+
+	public static async list(title?: string, user_id?: string, subreddut?: string): Promise<Post[]>{
+		const connection = await getConnection();
+		
+		const postRepository = await connection.getRepository(Post)
+
+		if(!title)
+			title = ''
+
+		return postRepository.find({
+			where: {
+				title: Like(`%${title}%`)
+			}
+		})
 	}
 }
